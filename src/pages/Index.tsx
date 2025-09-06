@@ -5,9 +5,10 @@ import { CaptainLeaderboard } from "@/components/dashboard/CaptainLeaderboard";
 import { ChartSection } from "@/components/dashboard/ChartSection";
 import { FilterPanel } from "@/components/dashboard/FilterPanel";
 import { CaptainAnalysis } from "@/components/dashboard/CaptainAnalysis";
+import { ExcelUpload } from "@/components/dashboard/ExcelUpload";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { mockShipmentData } from "@/data/mockData";
-import { DateRange } from "@/types/dashboard";
+import { DateRange, ShipmentData } from "@/types/dashboard";
 
 const Index = () => {
   const [selectedCompany, setSelectedCompany] = useState("all");
@@ -15,6 +16,9 @@ const Index = () => {
   const [selectedPackageCode, setSelectedPackageCode] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange>({});
   const [selectedCaptainForAnalysis, setSelectedCaptainForAnalysis] = useState<string | null>(null);
+  const [uploadedData, setUploadedData] = useState<ShipmentData[] | null>(null);
+
+  const currentData = uploadedData || mockShipmentData;
 
   const {
     globalKPIs,
@@ -23,7 +27,7 @@ const Index = () => {
     uniqueCaptains,
     uniquePackageCodes,
     filteredData
-  } = useDashboardData(mockShipmentData, {
+  } = useDashboardData(currentData, {
     company: selectedCompany,
     captain: selectedCaptain,
     packageCode: selectedPackageCode,
@@ -35,6 +39,16 @@ const Index = () => {
     setSelectedCaptain("all");
     setSelectedPackageCode("all");
     setDateRange({});
+  };
+
+  const handleDataUpload = (data: ShipmentData[]) => {
+    setUploadedData(data);
+    handleResetFilters(); // Reset filters when new data is uploaded
+  };
+
+  const handleClearData = () => {
+    setUploadedData(null);
+    handleResetFilters();
   };
 
   if (selectedCaptainForAnalysis) {
@@ -60,6 +74,12 @@ const Index = () => {
             Monitor and analyze delivery captain performance across all operations
           </p>
         </div>
+
+        <ExcelUpload 
+          onDataLoaded={handleDataUpload}
+          hasData={uploadedData !== null}
+          onClearData={handleClearData}
+        />
 
         <FilterPanel
           companies={uniqueCompanies}
