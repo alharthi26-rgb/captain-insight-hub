@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Package, TrendingUp, TrendingDown, AlertTriangle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { KPICard } from "@/components/dashboard/KPICard";
@@ -31,6 +31,20 @@ const Index = () => {
   const [uploadedData, setUploadedData] = useState<ShipmentData[] | null>(null);
   const { toast } = useToast();
 
+  // Load data from localStorage on mount
+  useEffect(() => {
+    const storedData = localStorage.getItem('dashboardData');
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        setUploadedData(parsedData);
+      } catch (error) {
+        console.error('Failed to parse stored data:', error);
+        localStorage.removeItem('dashboardData');
+      }
+    }
+  }, []);
+
   // Check URL parameters for captain analysis
   const urlParams = new URLSearchParams(window.location.search);
   const captainFromUrl = urlParams.get('captain');
@@ -61,11 +75,13 @@ const Index = () => {
 
   const handleDataUpload = (data: ShipmentData[]) => {
     setUploadedData(data);
+    localStorage.setItem('dashboardData', JSON.stringify(data));
     handleResetFilters(); // Reset filters when new data is uploaded
   };
 
   const handleClearData = () => {
     setUploadedData(null);
+    localStorage.removeItem('dashboardData');
     handleResetFilters();
     toast({
       title: "Data Cleared",
@@ -80,7 +96,7 @@ const Index = () => {
         <div className="container mx-auto p-6">
           <CaptainAnalysis
             captain={selectedCaptainForAnalysis}
-            data={filteredData}
+            data={currentData}
             onBack={() => window.close()}
           />
         </div>
