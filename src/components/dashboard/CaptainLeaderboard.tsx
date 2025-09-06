@@ -16,13 +16,12 @@ import { cn } from "@/lib/utils";
 
 interface CaptainLeaderboardProps {
   captains: CaptainStats[];
-  onCaptainSelect?: (captain: string) => void;
 }
 
 type SortField = keyof CaptainStats;
 type SortDirection = "asc" | "desc";
 
-export function CaptainLeaderboard({ captains, onCaptainSelect }: CaptainLeaderboardProps) {
+export function CaptainLeaderboard({ captains }: CaptainLeaderboardProps) {
   const [sortField, setSortField] = useState<SortField>("totalShipments");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
@@ -46,6 +45,12 @@ export function CaptainLeaderboard({ captains, onCaptainSelect }: CaptainLeaderb
       setSortField(field);
       setSortDirection("desc");
     }
+  };
+
+  const handleCaptainClick = (captainName: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('captain', encodeURIComponent(captainName));
+    window.open(url.toString(), '_blank');
   };
 
   const SortButton = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
@@ -120,7 +125,7 @@ export function CaptainLeaderboard({ captains, onCaptainSelect }: CaptainLeaderb
                     "cursor-pointer transition-colors hover:bg-muted/50",
                     index < 3 && "bg-primary/5"
                   )}
-                  onClick={() => onCaptainSelect?.(captain.captain)}
+                  onClick={() => handleCaptainClick(captain.captain)}
                 >
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
@@ -141,6 +146,7 @@ export function CaptainLeaderboard({ captains, onCaptainSelect }: CaptainLeaderb
                     </Badge>
                   </TableCell>
                   <TableCell>{captain.companiesServed}</TableCell>
+                  <TableCell>{captain.packagesHandled}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

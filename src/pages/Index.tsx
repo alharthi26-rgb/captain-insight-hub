@@ -28,9 +28,13 @@ const Index = () => {
   const [selectedCaptain, setSelectedCaptain] = useState("all");
   const [selectedPackageCode, setSelectedPackageCode] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange>({});
-  const [selectedCaptainForAnalysis, setSelectedCaptainForAnalysis] = useState<string | null>(null);
   const [uploadedData, setUploadedData] = useState<ShipmentData[] | null>(null);
   const { toast } = useToast();
+
+  // Check URL parameters for captain analysis
+  const urlParams = new URLSearchParams(window.location.search);
+  const captainFromUrl = urlParams.get('captain');
+  const selectedCaptainForAnalysis = captainFromUrl ? decodeURIComponent(captainFromUrl) : null;
 
   const currentData = uploadedData || mockShipmentData;
 
@@ -62,7 +66,6 @@ const Index = () => {
 
   const handleClearData = () => {
     setUploadedData(null);
-    setSelectedCaptainForAnalysis(null);
     handleResetFilters();
     toast({
       title: "Data Cleared",
@@ -78,7 +81,7 @@ const Index = () => {
           <CaptainAnalysis
             captain={selectedCaptainForAnalysis}
             data={filteredData}
-            onBack={() => setSelectedCaptainForAnalysis(null)}
+            onBack={() => window.close()}
           />
         </div>
       </div>
@@ -184,7 +187,6 @@ const Index = () => {
         {/* Captain Leaderboard */}
         <CaptainLeaderboard
           captains={captainStats}
-          onCaptainSelect={setSelectedCaptainForAnalysis}
         />
       </div>
     </div>
