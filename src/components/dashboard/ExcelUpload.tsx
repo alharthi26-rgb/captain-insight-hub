@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, FileSpreadsheet, X } from 'lucide-react';
+import { Upload, FileSpreadsheet, X, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -108,6 +108,49 @@ export const ExcelUpload: React.FC<ExcelUploadProps> = ({ onDataLoaded, hasData,
     }
   };
 
+  const downloadTemplate = () => {
+    // Create template data with headers and one sample row
+    const templateData = [
+      {
+        'Company Name': 'Example Company',
+        'Package Code': 'PKG001',
+        'Date': '2024-01-15',
+        '# Shipments': 10,
+        'Package Fare': 50.00,
+        '# Delivered Shipments': 8,
+        '# Failed Shipments': 2,
+        'Captain': 'Ahmed Hassan'
+      }
+    ];
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    
+    // Add the worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Shipment Data');
+    
+    // Generate buffer and create download
+    const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    
+    // Create download link
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'captain-dashboard-template.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: "Template Downloaded",
+      description: "Excel template has been downloaded successfully",
+      variant: "default",
+    });
+  };
+
   if (hasData) {
     return (
       <Card className="p-4 mb-6 bg-success/5 border-success/20">
@@ -174,6 +217,19 @@ export const ExcelUpload: React.FC<ExcelUploadProps> = ({ onDataLoaded, hasData,
                 <FileSpreadsheet className="h-4 w-4 mr-2" />
                 {uploading ? 'Processing...' : 'Choose Excel File'}
               </label>
+            </Button>
+            
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>or</span>
+            </div>
+            
+            <Button 
+              onClick={downloadTemplate}
+              variant="outline"
+              className="w-full max-w-xs mx-auto"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download Template
             </Button>
           </div>
         </div>
