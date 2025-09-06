@@ -22,14 +22,12 @@ export function CaptainAnalysis({ captain, data, onBack }: CaptainAnalysisProps)
     const totalShipments = captainData.reduce((sum, item) => sum + item.shipments, 0);
     const totalDelivered = captainData.reduce((sum, item) => sum + item.deliveredShipments, 0);
     const totalFailed = captainData.reduce((sum, item) => sum + item.failedShipments, 0);
-    const totalCost = captainData.reduce((sum, item) => sum + (item.packageFare * item.deliveredShipments), 0);
     
     return {
       totalShipments,
       totalDelivered,
       totalFailed,
       successRate: totalShipments > 0 ? (totalDelivered / totalShipments) * 100 : 0,
-      avgCostPerDelivered: totalDelivered > 0 ? totalCost / totalDelivered : 0,
     };
   }, [captainData]);
 
@@ -64,6 +62,51 @@ export function CaptainAnalysis({ captain, data, onBack }: CaptainAnalysisProps)
         week: new Date(item.week).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
       }));
   }, [captainData]);
+
+  const overallAverage = useMemo(() => {
+    const allData = data.length > 0 ? data : [];
+    const totalShipments = allData.reduce((sum, item) => sum + item.shipments, 0);
+    const totalDelivered = allData.reduce((sum, item) => sum + item.deliveredShipments, 0);
+    const totalFailed = allData.reduce((sum, item) => sum + item.failedShipments, 0);
+    
+    return {
+      successRate: totalShipments > 0 ? (totalDelivered / totalShipments) * 100 : 0,
+      failureRate: totalShipments > 0 ? (totalFailed / totalShipments) * 100 : 0,
+      avgShipmentsPerEntry: allData.length > 0 ? totalShipments / allData.length : 0,
+    };
+  }, [data]);
+
+  const monthlyData = useMemo(() => {
+    const monthlyMap = new Map();
+    
+    captainData.forEach(item => {
+      const date = new Date(item.date);
+      const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+      
+      if (!monthlyMap.has(monthKey)) {
+        monthlyMap.set(monthKey, {
+          month: monthKey,
+          shipments: 0,
+          delivered: 0,
+          failed: 0,
+        });
+      }
+      
+      const monthData = monthlyMap.get(monthKey);
+      monthData.shipments += item.shipments;
+      monthData.delivered += item.deliveredShipments;
+      monthData.failed += item.failedShipments;
+    });
+    
+    return Array.from(monthlyMap.values())
+      .sort((a, b) => a.month.localeCompare(b.month))
+      .map(item => ({
+        ...item,
+        successRate: item.shipments > 0 ? (item.delivered / item.shipments) * 100 : 0,
+        efficiency: item.shipments > 0 ? (item.delivered / item.shipments) - (overallAverage.successRate / 100) : 0,
+        monthName: new Date(item.month + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+      }));
+  }, [captainData, overallAverage.successRate]);
 
   const companyDistribution = useMemo(() => {
     const companyMap = new Map();
@@ -114,11 +157,6 @@ export function CaptainAnalysis({ captain, data, onBack }: CaptainAnalysisProps)
       .sort((a, b) => b.shipments - a.shipments);
   }, [captainData]);
 
-  const overallAverage = data.length > 0 ? {
-    successRate: (data.reduce((sum, item) => sum + item.deliveredShipments, 0) / data.reduce((sum, item) => sum + item.shipments, 0)) * 100,
-    avgCost: data.reduce((sum, item) => sum + (item.packageFare * item.deliveredShipments), 0) / data.reduce((sum, item) => sum + item.deliveredShipments, 0)
-  } : { successRate: 0, avgCost: 0 };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -157,23 +195,106 @@ export function CaptainAnalysis({ captain, data, onBack }: CaptainAnalysisProps)
           variant="destructive"
         />
         <KPICard
-          title="Avg Cost per Delivery"
-          value={`${captainKPIs.avgCostPerDelivered.toFixed(2)} SAR`}
-          icon={captainKPIs.avgCostPerDelivered <= overallAverage.avgCost ? TrendingUp : TrendingDown}
-          variant={captainKPIs.avgCostPerDelivered <= overallAverage.avgCost ? "success" : "warning"}
-          trend={{
-            value: parseFloat(((captainKPIs.avgCostPerDelivered - overallAverage.avgCost) / overallAverage.avgCost * 100).toFixed(1)),
-            isPositive: captainKPIs.avgCostPerDelivered <= overallAverage.avgCost
-          }}
+          title="Efficiency vs Average"
+          value={`${captainKPIs.successRate >= overallAverage.successRate ? '+' : ''}${(captainKPIs.successRate - overallAverage.successRate).toFixed(1)}%`}
+          icon={captainKPIs.successRate >= overallAverage.successRate ? TrendingUp : TrendingDown}
+          variant={captainKPIs.successRate >= overallAverage.successRate ? "success" : "warning"}
         />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
+        {/* Historical Performance Trend */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Monthly Performance History</CardTitle>
+            <CardDescription>Captain performance vs overall average over time</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis 
+                  dataKey="monthName" 
+                  className="text-muted-foreground text-xs"
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis className="text-muted-foreground text-xs" />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px"
+                  }}
+                />
+                <Bar dataKey="shipments" fill="hsl(var(--primary))" name="Shipments" />
+                <Bar dataKey="delivered" fill="hsl(var(--success))" name="Delivered" />
+                <Bar dataKey="failed" fill="hsl(var(--destructive))" name="Failed" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Performance vs Average Comparison */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Performance vs Average</CardTitle>
+            <CardDescription>
+              How this captain performs compared to overall average ({overallAverage.successRate.toFixed(1)}%)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis 
+                  dataKey="monthName" 
+                  className="text-muted-foreground text-xs"
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis 
+                  className="text-muted-foreground text-xs"
+                  domain={['dataMin - 5', 'dataMax + 5']}
+                />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px"
+                  }}
+                  formatter={(value: number) => [`${value.toFixed(1)}%`, "Success Rate"]}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="successRate" 
+                  stroke="hsl(var(--primary))" 
+                  strokeWidth={3}
+                  dot={{ fill: "hsl(var(--primary))", strokeWidth: 2 }}
+                  name="Captain Performance"
+                />
+                {/* Benchmark line */}
+                <Line 
+                  type="monotone" 
+                  dataKey={() => overallAverage.successRate}
+                  stroke="hsl(var(--muted-foreground))" 
+                  strokeDasharray="5 5"
+                  strokeWidth={2}
+                  dot={false}
+                  name="Overall Average"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
         {/* Weekly Performance Trend */}
         <Card>
           <CardHeader>
             <CardTitle>Weekly Performance Trend</CardTitle>
-            <CardDescription>Shipments, deliveries, and failures over time</CardDescription>
+            <CardDescription>Recent shipments, deliveries, and failures</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -194,61 +315,9 @@ export function CaptainAnalysis({ captain, data, onBack }: CaptainAnalysisProps)
                     borderRadius: "8px"
                   }}
                 />
-                <Line type="monotone" dataKey="shipments" stroke="hsl(var(--primary))" strokeWidth={2} />
-                <Line type="monotone" dataKey="delivered" stroke="hsl(var(--success))" strokeWidth={2} />
-                <Line type="monotone" dataKey="failed" stroke="hsl(var(--destructive))" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Success Rate Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Success Rate Trend</CardTitle>
-            <CardDescription>
-              Weekly success rate vs overall average ({overallAverage.successRate.toFixed(1)}%)
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={weeklyData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis 
-                  dataKey="week" 
-                  className="text-muted-foreground text-xs"
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                />
-                <YAxis 
-                  className="text-muted-foreground text-xs"
-                  domain={[70, 100]}
-                />
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px"
-                  }}
-                  formatter={(value: number) => [`${value.toFixed(1)}%`, "Success Rate"]}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="successRate" 
-                  stroke="hsl(var(--primary))" 
-                  strokeWidth={3}
-                  dot={{ fill: "hsl(var(--primary))", strokeWidth: 2 }}
-                />
-                {/* Benchmark line */}
-                <Line 
-                  type="monotone" 
-                  dataKey={() => overallAverage.successRate}
-                  stroke="hsl(var(--muted-foreground))" 
-                  strokeDasharray="5 5"
-                  strokeWidth={1}
-                  dot={false}
-                />
+                <Line type="monotone" dataKey="shipments" stroke="hsl(var(--primary))" strokeWidth={2} name="Shipments" />
+                <Line type="monotone" dataKey="delivered" stroke="hsl(var(--success))" strokeWidth={2} name="Delivered" />
+                <Line type="monotone" dataKey="failed" stroke="hsl(var(--destructive))" strokeWidth={2} name="Failed" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>

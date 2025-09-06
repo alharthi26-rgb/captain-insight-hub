@@ -4,7 +4,6 @@ export interface ShipmentData {
   packageCode: string;
   date: string;
   shipments: number;
-  packageFare: number;
   deliveredShipments: number;
   failedShipments: number;
   captain: string;
@@ -17,7 +16,6 @@ export interface CaptainStats {
   failed: number;
   successRate: number;
   failureRate: number;
-  costPerDelivered: number;
   companiesServed: number;
   packagesHandled: number;
 }
@@ -27,7 +25,6 @@ export interface GlobalKPIs {
   totalDelivered: number;
   totalFailed: number;
   successRate: number;
-  avgCostPerDelivered: number;
 }
 
 export interface DateRange {

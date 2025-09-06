@@ -105,9 +105,6 @@ export function CaptainLeaderboard({ captains, onCaptainSelect }: CaptainLeaderb
                   <SortButton field="successRate">Success Rate</SortButton>
                 </TableHead>
                 <TableHead>
-                  <SortButton field="costPerDelivered">Cost/Delivered</SortButton>
-                </TableHead>
-                <TableHead>
                   <SortButton field="companiesServed">Companies</SortButton>
                 </TableHead>
                 <TableHead>
@@ -143,9 +140,7 @@ export function CaptainLeaderboard({ captains, onCaptainSelect }: CaptainLeaderb
                       {captain.successRate.toFixed(1)}%
                     </Badge>
                   </TableCell>
-                  <TableCell>{captain.costPerDelivered.toFixed(2)} SAR</TableCell>
                   <TableCell>{captain.companiesServed}</TableCell>
-                  <TableCell>{captain.packagesHandled}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

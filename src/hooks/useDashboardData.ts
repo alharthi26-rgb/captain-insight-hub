@@ -40,14 +40,12 @@ export function useDashboardData(
     const totalShipments = filteredData.reduce((sum, item) => sum + item.shipments, 0);
     const totalDelivered = filteredData.reduce((sum, item) => sum + item.deliveredShipments, 0);
     const totalFailed = filteredData.reduce((sum, item) => sum + item.failedShipments, 0);
-    const totalCost = filteredData.reduce((sum, item) => sum + (item.packageFare * item.deliveredShipments), 0);
     
     return {
       totalShipments,
       totalDelivered,
       totalFailed,
       successRate: totalShipments > 0 ? (totalDelivered / totalShipments) * 100 : 0,
-      avgCostPerDelivered: totalDelivered > 0 ? totalCost / totalDelivered : 0,
     };
   }, [filteredData]);
 
@@ -56,7 +54,6 @@ export function useDashboardData(
       totalShipments: number;
       delivered: number;
       failed: number;
-      totalCost: number;
       companies: Set<string>;
       packages: Set<string>;
     }>();
@@ -67,7 +64,6 @@ export function useDashboardData(
           totalShipments: 0,
           delivered: 0,
           failed: 0,
-          totalCost: 0,
           companies: new Set(),
           packages: new Set(),
         });
@@ -77,7 +73,6 @@ export function useDashboardData(
       stats.totalShipments += item.shipments;
       stats.delivered += item.deliveredShipments;
       stats.failed += item.failedShipments;
-      stats.totalCost += item.packageFare * item.deliveredShipments;
       stats.companies.add(item.companyName);
       stats.packages.add(item.packageCode);
     });
@@ -89,7 +84,6 @@ export function useDashboardData(
       failed: stats.failed,
       successRate: stats.totalShipments > 0 ? (stats.delivered / stats.totalShipments) * 100 : 0,
       failureRate: stats.totalShipments > 0 ? (stats.failed / stats.totalShipments) * 100 : 0,
-      costPerDelivered: stats.delivered > 0 ? stats.totalCost / stats.delivered : 0,
       companiesServed: stats.companies.size,
       packagesHandled: stats.packages.size,
     }));

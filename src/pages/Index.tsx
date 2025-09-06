@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Package, TrendingUp, TrendingDown, DollarSign, AlertTriangle } from "lucide-react";
+import { Package, TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { CaptainLeaderboard } from "@/components/dashboard/CaptainLeaderboard";
 import { ChartSection } from "@/components/dashboard/ChartSection";
@@ -97,7 +97,7 @@ const Index = () => {
         />
 
         {/* Global KPIs */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 mb-8">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <KPICard
             title="Total Shipments"
             value={globalKPIs.totalShipments.toLocaleString()}
@@ -121,12 +121,6 @@ const Index = () => {
             value={`${globalKPIs.successRate.toFixed(1)}%`}
             icon={globalKPIs.successRate >= 85 ? TrendingUp : TrendingDown}
             variant={globalKPIs.successRate >= 85 ? "success" : "warning"}
-          />
-          <KPICard
-            title="Avg Cost per Delivery"
-            value={`${globalKPIs.avgCostPerDelivered.toFixed(2)} SAR`}
-            icon={DollarSign}
-            variant="default"
           />
         </div>
 

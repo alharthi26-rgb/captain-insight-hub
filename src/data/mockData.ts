@@ -22,7 +22,6 @@ export const mockShipmentData: ShipmentData[] = Array.from({ length: 500 }, (_, 
     packageCode: packageCodes[Math.floor(Math.random() * packageCodes.length)],
     date: generateRandomDate().toISOString().split('T')[0],
     shipments,
-    packageFare: Math.floor(Math.random() * 100) + 20,
     deliveredShipments,
     failedShipments,
     captain: captains[Math.floor(Math.random() * captains.length)]
