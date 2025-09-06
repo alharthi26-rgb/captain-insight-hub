@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Package, TrendingUp, TrendingDown, AlertTriangle, RotateCcw } from "lucide-react";
+import { Package, TrendingUp, TrendingDown, AlertTriangle, RotateCcw, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { CaptainLeaderboard } from "@/components/dashboard/CaptainLeaderboard";
 import { ChartSection } from "@/components/dashboard/ChartSection";
@@ -115,34 +116,42 @@ const Index = () => {
                 Monitor and analyze delivery captain performance across all operations
               </p>
             </div>
-            {uploadedData && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="outline" className="text-destructive hover:text-destructive">
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Reset All Data
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Reset All Data</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will permanently delete all uploaded data and reset the dashboard to default mock data. 
-                      This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction 
-                      onClick={handleClearData}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      Reset Everything
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
+            <div className="flex items-center gap-4">
+              <Link to="/driver-management">
+                <Button variant="outline" size="sm">
+                  <Users className="h-4 w-4 mr-2" />
+                  Driver Management
+                </Button>
+              </Link>
+              {uploadedData && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" className="text-destructive hover:text-destructive">
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      Reset All Data
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Reset All Data</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete all uploaded data and reset the dashboard to default mock data. 
+                        This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={handleClearData}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Reset Everything
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
           </div>
         </div>
 
