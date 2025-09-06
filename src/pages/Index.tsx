@@ -85,11 +85,52 @@ const Index = () => {
     localStorage.removeItem('dashboardData');
     handleResetFilters();
     toast({
-      title: "Data Cleared",
-      description: "All data has been reset to default mock data",
+      title: "All Data Cleared",
+      description: "All data has been completely reset. No data will be displayed until you upload new data.",
       variant: "default",
     });
   };
+
+  // Show empty state when no data
+  if (!uploadedData || uploadedData.length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto p-6">
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-bold mb-2">Captain Performance Dashboard</h1>
+                <p className="text-xl text-muted-foreground">
+                  Monitor and analyze delivery captain performance across all operations
+                </p>  
+              </div>
+              <div className="flex items-center gap-4">
+                <Link to="/driver-management">
+                  <Button variant="outline" size="sm">
+                    <Users className="h-4 w-4 mr-2" />
+                    Driver Management
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center space-y-4">
+              <Package className="h-16 w-16 mx-auto text-muted-foreground opacity-50" />
+              <div>
+                <h3 className="text-xl font-semibold mb-2">No Data Available</h3>
+                <p className="text-muted-foreground mb-6">
+                  Upload an Excel file to view captain performance analytics
+                </p>
+                <ExcelUpload onDataLoaded={handleDataUpload} hasData={false} onClearData={handleClearData} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (selectedCaptainForAnalysis) {
     return (

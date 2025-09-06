@@ -43,6 +43,47 @@ export default function DriverManagement() {
   const { captainStats } = useDashboardData(currentData, filters);
   console.log('Captain stats calculated:', captainStats?.length || 0, 'captains');
 
+  // Show empty state when no data
+  if (!uploadedData || uploadedData.length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="border-b bg-card">
+          <div className="container mx-auto px-6 py-4">
+            <div className="flex items-center gap-4">
+              <Link to="/">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Dashboard
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Driver Management</h1>
+                <p className="text-muted-foreground">Optimize your driver roster for maximum performance</p>
+              </div>
+            </div>
+          </div>
+        </header>
+        
+        <main className="container mx-auto p-6">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center space-y-4">
+              <Users className="h-16 w-16 mx-auto text-muted-foreground opacity-50" />
+              <div>
+                <h3 className="text-xl font-semibold mb-2">No Driver Data Available</h3>
+                <p className="text-muted-foreground mb-6">
+                  Please upload data from the main dashboard to manage drivers
+                </p>
+                <Link to="/">
+                  <Button>Go to Dashboard</Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
@@ -129,10 +170,9 @@ export default function DriverManagement() {
         </div>
 
         <Tabs defaultValue="selection" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="selection">Driver Selection</TabsTrigger>
             <TabsTrigger value="criteria">Selection Criteria</TabsTrigger>
-            <TabsTrigger value="actions">Bulk Actions</TabsTrigger>
           </TabsList>
 
           <TabsContent value="selection" className="space-y-6">
@@ -144,22 +184,6 @@ export default function DriverManagement() {
 
           <TabsContent value="criteria">
             <DriverSelectionCriteria />
-          </TabsContent>
-
-          <TabsContent value="actions">
-            <Card>
-              <CardHeader>
-                <CardTitle>Bulk Actions</CardTitle>
-                <CardDescription>
-                  Execute actions on selected drivers (Coming Soon)
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-center h-32 text-muted-foreground">
-                  Bulk action functionality will be available in the next update
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </main>
