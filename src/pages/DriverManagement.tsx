@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,10 +21,27 @@ export default function DriverManagement() {
   });
 
   // Load data from localStorage on mount
-  const storedData = localStorage.getItem('dashboardData');
-  const currentData = uploadedData || (storedData ? JSON.parse(storedData) : null) || mockShipmentData;
+  useEffect(() => {
+    const storedData = localStorage.getItem('dashboardData');
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        console.log('Loaded data from localStorage:', parsedData?.length || 0, 'records');
+        setUploadedData(parsedData);
+      } catch (error) {
+        console.error('Failed to parse stored data:', error);
+        localStorage.removeItem('dashboardData');
+      }
+    } else {
+      console.log('No stored data found, using mock data');
+    }
+  }, []);
+
+  const currentData = uploadedData || mockShipmentData;
+  console.log('Current data for processing:', currentData?.length || 0, 'records');
 
   const { captainStats } = useDashboardData(currentData, filters);
+  console.log('Captain stats calculated:', captainStats?.length || 0, 'captains');
 
   return (
     <div className="min-h-screen bg-background">
