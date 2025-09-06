@@ -23,13 +23,53 @@ export function CaptainAnalysis({ captain, data, onBack }: CaptainAnalysisProps)
     const totalDelivered = captainData.reduce((sum, item) => sum + item.deliveredShipments, 0);
     const totalFailed = captainData.reduce((sum, item) => sum + item.failedShipments, 0);
     
+    // Calculate monthly success rate (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const monthlyData = captainData.filter(item => new Date(item.date) >= thirtyDaysAgo);
+    const monthlyShipments = monthlyData.reduce((sum, item) => sum + item.shipments, 0);
+    const monthlyDelivered = monthlyData.reduce((sum, item) => sum + item.deliveredShipments, 0);
+    const monthlySuccessRate = monthlyShipments > 0 ? (monthlyDelivered / monthlyShipments) * 100 : 0;
+    
+    // Calculate weekly success rate (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const weeklyData = captainData.filter(item => new Date(item.date) >= sevenDaysAgo);
+    const weeklyShipments = weeklyData.reduce((sum, item) => sum + item.shipments, 0);
+    const weeklyDelivered = weeklyData.reduce((sum, item) => sum + item.deliveredShipments, 0);
+    const weeklySuccessRate = weeklyShipments > 0 ? (weeklyDelivered / weeklyShipments) * 100 : 0;
+    
     return {
       totalShipments,
       totalDelivered,
       totalFailed,
       successRate: totalShipments > 0 ? (totalDelivered / totalShipments) * 100 : 0,
+      monthlySuccessRate,
+      weeklySuccessRate,
     };
   }, [captainData]);
+
+  // Calculate driver ranking among all drivers
+  const driverRanking = useMemo(() => {
+    const allCaptainsStats = data.reduce((acc, item) => {
+      if (!acc[item.captain]) {
+        acc[item.captain] = { delivered: 0, total: 0 };
+      }
+      acc[item.captain].delivered += item.deliveredShipments;
+      acc[item.captain].total += item.shipments;
+      return acc;
+    }, {} as Record<string, { delivered: number; total: number }>);
+
+    const rankedCaptains = Object.entries(allCaptainsStats)
+      .map(([name, stats]) => ({
+        captain: name,
+        successRate: stats.total > 0 ? (stats.delivered / stats.total) * 100 : 0,
+      }))
+      .sort((a, b) => b.successRate - a.successRate);
+
+    const currentCaptainRank = rankedCaptains.findIndex(c => c.captain === captain) + 1;
+    return { rank: currentCaptainRank, totalDrivers: rankedCaptains.length };
+  }, [data, captain]);
 
   const weeklyData = useMemo(() => {
     const weeklyMap = new Map();
@@ -171,7 +211,7 @@ export function CaptainAnalysis({ captain, data, onBack }: CaptainAnalysisProps)
       </div>
 
       {/* Captain KPIs */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <KPICard
           title="Total Shipments"
           value={captainKPIs.totalShipments.toLocaleString()}
@@ -179,26 +219,36 @@ export function CaptainAnalysis({ captain, data, onBack }: CaptainAnalysisProps)
           variant="default"
         />
         <KPICard
-          title="Success Rate"
-          value={`${captainKPIs.successRate.toFixed(1)}%`}
-          icon={captainKPIs.successRate >= overallAverage.successRate ? TrendingUp : TrendingDown}
-          variant={captainKPIs.successRate >= overallAverage.successRate ? "success" : "warning"}
+          title="Monthly Success Rate"
+          value={`${captainKPIs.monthlySuccessRate.toFixed(1)}%`}
+          icon={captainKPIs.monthlySuccessRate >= overallAverage.successRate ? TrendingUp : TrendingDown}
+          variant={captainKPIs.monthlySuccessRate >= overallAverage.successRate ? "success" : "warning"}
           trend={{
-            value: parseFloat((captainKPIs.successRate - overallAverage.successRate).toFixed(1)),
-            isPositive: captainKPIs.successRate >= overallAverage.successRate
+            value: parseFloat((captainKPIs.monthlySuccessRate - overallAverage.successRate).toFixed(1)),
+            isPositive: captainKPIs.monthlySuccessRate >= overallAverage.successRate
           }}
+        />
+        <KPICard
+          title="Weekly Success Rate"
+          value={`${captainKPIs.weeklySuccessRate.toFixed(1)}%`}
+          icon={captainKPIs.weeklySuccessRate >= overallAverage.successRate ? TrendingUp : TrendingDown}
+          variant={captainKPIs.weeklySuccessRate >= overallAverage.successRate ? "success" : "warning"}
+          trend={{
+            value: parseFloat((captainKPIs.weeklySuccessRate - overallAverage.successRate).toFixed(1)),
+            isPositive: captainKPIs.weeklySuccessRate >= overallAverage.successRate
+          }}
+        />
+        <KPICard
+          title="Driver Ranking"
+          value={`#${driverRanking.rank} of ${driverRanking.totalDrivers}`}
+          icon={driverRanking.rank <= 3 ? Award : TrendingUp}
+          variant={driverRanking.rank <= 3 ? "success" : "default"}
         />
         <KPICard
           title="Failed Shipments"
           value={captainKPIs.totalFailed.toLocaleString()}
           icon={AlertTriangle}
           variant="destructive"
-        />
-        <KPICard
-          title="Efficiency vs Average"
-          value={`${captainKPIs.successRate >= overallAverage.successRate ? '+' : ''}${(captainKPIs.successRate - overallAverage.successRate).toFixed(1)}%`}
-          icon={captainKPIs.successRate >= overallAverage.successRate ? TrendingUp : TrendingDown}
-          variant={captainKPIs.successRate >= overallAverage.successRate ? "success" : "warning"}
         />
       </div>
 
@@ -239,17 +289,17 @@ export function CaptainAnalysis({ captain, data, onBack }: CaptainAnalysisProps)
         {/* Performance vs Average Comparison */}
         <Card>
           <CardHeader>
-            <CardTitle>Performance vs Average</CardTitle>
+            <CardTitle>Weekly Performance vs Average</CardTitle>
             <CardDescription>
-              How this captain performs compared to overall average ({overallAverage.successRate.toFixed(1)}%)
+              Weekly performance compared to overall average ({overallAverage.successRate.toFixed(1)}%)
             </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={monthlyData}>
+              <LineChart data={weeklyData}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis 
-                  dataKey="monthName" 
+                  dataKey="week" 
                   className="text-muted-foreground text-xs"
                   angle={-45}
                   textAnchor="end"
@@ -359,37 +409,65 @@ export function CaptainAnalysis({ captain, data, onBack }: CaptainAnalysisProps)
         </Card>
 
         {/* Package Performance */}
-        <Card>
+        <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle>Package Code Performance</CardTitle>
-            <CardDescription>Success rate by package type handled</CardDescription>
+            <CardDescription>Detailed performance metrics by package type</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {packagePerformance.map((pkg) => (
-                <div key={pkg.code} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <code className="text-sm font-mono bg-background px-2 py-1 rounded">
-                      {pkg.code}
-                    </code>
-                    <span className="text-sm text-muted-foreground">
-                      {pkg.shipments} shipments
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge 
-                      variant={pkg.successRate >= 90 ? "default" : pkg.successRate >= 80 ? "secondary" : "destructive"}
-                    >
-                      {pkg.successRate.toFixed(1)}% success
-                    </Badge>
-                    {pkg.failureRate > 20 && (
-                      <Badge variant="destructive">
-                        High failure rate
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b border-muted">
+                    <th className="text-left p-3 font-medium">Package Code</th>
+                    <th className="text-right p-3 font-medium">Total Shipments</th>
+                    <th className="text-right p-3 font-medium">Delivered</th>
+                    <th className="text-right p-3 font-medium">Failed</th>
+                    <th className="text-right p-3 font-medium">Success Rate</th>
+                    <th className="text-right p-3 font-medium">Failure Rate</th>
+                    <th className="text-center p-3 font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {packagePerformance.map((pkg, index) => (
+                    <tr key={pkg.code} className={`border-b border-muted/50 ${index % 2 === 0 ? 'bg-muted/20' : ''}`}>
+                      <td className="p-3">
+                        <code className="text-sm font-mono bg-background px-2 py-1 rounded">
+                          {pkg.code}
+                        </code>
+                      </td>
+                      <td className="text-right p-3 font-medium">{pkg.shipments.toLocaleString()}</td>
+                      <td className="text-right p-3 text-green-600">{pkg.delivered.toLocaleString()}</td>
+                      <td className="text-right p-3 text-red-600">{pkg.failed.toLocaleString()}</td>
+                      <td className="text-right p-3">
+                        <span className={`font-semibold ${pkg.successRate >= 90 ? 'text-green-600' : pkg.successRate >= 80 ? 'text-yellow-600' : 'text-red-600'}`}>
+                          {pkg.successRate.toFixed(1)}%
+                        </span>
+                      </td>
+                      <td className="text-right p-3">
+                        <span className={`font-semibold ${pkg.failureRate <= 10 ? 'text-green-600' : pkg.failureRate <= 20 ? 'text-yellow-600' : 'text-red-600'}`}>
+                          {pkg.failureRate.toFixed(1)}%
+                        </span>
+                      </td>
+                      <td className="text-center p-3">
+                        <div className="flex justify-center gap-1">
+                          <Badge 
+                            variant={pkg.successRate >= 90 ? "default" : pkg.successRate >= 80 ? "secondary" : "destructive"}
+                            className="text-xs"
+                          >
+                            {pkg.successRate >= 90 ? "Excellent" : pkg.successRate >= 80 ? "Good" : "Needs Improvement"}
+                          </Badge>
+                          {pkg.failureRate > 20 && (
+                            <Badge variant="destructive" className="text-xs">
+                              High Risk
+                            </Badge>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </CardContent>
         </Card>
