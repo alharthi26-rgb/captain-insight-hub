@@ -14,9 +14,9 @@ import { mockShipmentData } from "@/data/mockData";
 export default function DriverManagement() {
   const [uploadedData, setUploadedData] = useState(null);
   const [filters, setFilters] = useState({
-    company: "",
-    captain: "",
-    packageCode: "",
+    company: "all",
+    captain: "all", 
+    packageCode: "all",
     dateRange: { from: undefined, to: undefined }
   });
 
