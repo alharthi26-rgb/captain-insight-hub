@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Package, TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
+import { Package, TrendingUp, TrendingDown, AlertTriangle, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { CaptainLeaderboard } from "@/components/dashboard/CaptainLeaderboard";
 import { ChartSection } from "@/components/dashboard/ChartSection";
@@ -9,6 +10,18 @@ import { ExcelUpload } from "@/components/dashboard/ExcelUpload";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { mockShipmentData } from "@/data/mockData";
 import { DateRange, ShipmentData } from "@/types/dashboard";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const Index = () => {
   const [selectedCompany, setSelectedCompany] = useState("all");
@@ -17,6 +30,7 @@ const Index = () => {
   const [dateRange, setDateRange] = useState<DateRange>({});
   const [selectedCaptainForAnalysis, setSelectedCaptainForAnalysis] = useState<string | null>(null);
   const [uploadedData, setUploadedData] = useState<ShipmentData[] | null>(null);
+  const { toast } = useToast();
 
   const currentData = uploadedData || mockShipmentData;
 
@@ -48,7 +62,13 @@ const Index = () => {
 
   const handleClearData = () => {
     setUploadedData(null);
+    setSelectedCaptainForAnalysis(null);
     handleResetFilters();
+    toast({
+      title: "Data Cleared",
+      description: "All data has been reset to default mock data",
+      variant: "default",
+    });
   };
 
   if (selectedCaptainForAnalysis) {
@@ -69,10 +89,42 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Captain Performance Dashboard</h1>
-          <p className="text-xl text-muted-foreground">
-            Monitor and analyze delivery captain performance across all operations
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold mb-2">Captain Performance Dashboard</h1>
+              <p className="text-xl text-muted-foreground">
+                Monitor and analyze delivery captain performance across all operations
+              </p>
+            </div>
+            {uploadedData && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" className="text-destructive hover:text-destructive">
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Reset All Data
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Reset All Data</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete all uploaded data and reset the dashboard to default mock data. 
+                      This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleClearData}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Reset Everything
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         </div>
 
         <ExcelUpload 

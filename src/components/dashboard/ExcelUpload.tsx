@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
-import { Upload, FileSpreadsheet, X, Download } from 'lucide-react';
+import { Upload, FileSpreadsheet, X, Download, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import * as XLSX from 'xlsx';
 import { ShipmentData } from '@/types/dashboard';
 
@@ -209,15 +220,38 @@ export const ExcelUpload: React.FC<ExcelUploadProps> = ({ onDataLoaded, hasData,
               <p className="text-sm text-muted-foreground">Dashboard is displaying your uploaded data</p>
             </div>
           </div>
-          <Button
-            onClick={onClearData}
-            variant="outline"
-            size="sm"
-            className="text-destructive hover:text-destructive"
-          >
-            <X className="h-4 w-4 mr-1" />
-            Clear Data
-          </Button>
+          <div className="flex items-center gap-3">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                >
+                  <RotateCcw className="h-4 w-4 mr-1" />
+                  Reset All Data
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Reset All Data</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete all uploaded Excel data and reset the dashboard to default data. 
+                    This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={onClearData}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete All Data
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
       </Card>
     );
