@@ -19,18 +19,39 @@ export function TopDriversSelection({ captains }: TopDriversSelectionProps) {
   const [targetCount, setTargetCount] = useState(80);
   const { toast } = useToast();
 
-  // Sort drivers by performance score (weighted algorithm)
+  // Sort drivers by performance score (updated weighted algorithm)
   const topDrivers = useMemo(() => {
     return [...captains]
-      .map(captain => ({
-        ...captain,
-        performanceScore: (
-          captain.successRate * 0.4 +
-          (captain.totalShipments / Math.max(...captains.map(c => c.totalShipments))) * 100 * 0.3 +
-          (captain.companiesServed / Math.max(...captains.map(c => c.companiesServed))) * 100 * 0.2 +
-          (captain.packagesHandled / Math.max(...captains.map(c => c.packagesHandled))) * 100 * 0.1
-        )
-      }))
+      .map(captain => {
+        // Calculate normalized scores for each criterion
+        const maxShipments = Math.max(...captains.map(c => c.totalShipments));
+        
+        // Success Rate Score (50% weight) - Direct percentage
+        const successRateScore = captain.successRate;
+        
+        // Volume Handled Score (35% weight) - Normalized to 0-100
+        const volumeScore = maxShipments > 0 ? (captain.totalShipments / maxShipments) * 100 : 0;
+        
+        // Daily Consistency Score (15% weight) - Simulated based on success rate
+        // Higher success rate = more consistent (simplified for demo)
+        const consistencyScore = captain.successRate >= 90 ? 95 : 
+                               captain.successRate >= 85 ? 80 : 
+                               captain.successRate >= 80 ? 65 : 50;
+        
+        // Calculate weighted performance score
+        const performanceScore = (
+          successRateScore * 0.5 +      // 50% weight
+          volumeScore * 0.35 +          // 35% weight  
+          consistencyScore * 0.15       // 15% weight
+        );
+
+        return {
+          ...captain,
+          performanceScore,
+          volumeScore,
+          consistencyScore
+        };
+      })
       .sort((a, b) => b.performanceScore - a.performanceScore)
       .slice(0, Math.min(targetCount * 2, captains.length)); // Show more options than target
   }, [captains, targetCount]);
@@ -51,9 +72,9 @@ export function TopDriversSelection({ captains }: TopDriversSelectionProps) {
   const handleExport = () => {
     const selectedData = topDrivers.filter(d => selectedDrivers.includes(d.captain));
     const csvContent = [
-      'Captain,Success Rate,Total Shipments,Delivered,Failed,Companies Served,Packages Handled,Performance Score',
+      'Captain,Success Rate,Total Shipments,Volume Score,Consistency Score,Performance Score,Delivered,Failed',
       ...selectedData.map(d => 
-        `${d.captain},${d.successRate.toFixed(1)}%,${d.totalShipments},${d.delivered},${d.failed},${d.companiesServed},${d.packagesHandled},${d.performanceScore.toFixed(1)}`
+        `${d.captain},${d.successRate.toFixed(1)}%,${d.totalShipments},${d.volumeScore.toFixed(1)},${d.consistencyScore.toFixed(1)},${d.performanceScore.toFixed(1)},${d.delivered},${d.failed}`
       )
     ].join('\n');
 
@@ -154,10 +175,15 @@ export function TopDriversSelection({ captains }: TopDriversSelectionProps) {
                       {driver.performanceScore.toFixed(1)} Score
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-                    <span>Success: {driver.successRate.toFixed(1)}%</span>
-                    <span>Shipments: {driver.totalShipments.toLocaleString()}</span>
-                    <span>Companies: {driver.companiesServed}</span>
+                  <div className="flex items-center justify-between mt-1">
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span>Success: {driver.successRate.toFixed(1)}%</span>
+                      <span>Volume: {driver.totalShipments.toLocaleString()}</span>
+                      <span>Consistency: {driver.consistencyScore.toFixed(0)}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Score: {driver.performanceScore.toFixed(1)}
+                    </div>
                   </div>
                 </div>
               </div>

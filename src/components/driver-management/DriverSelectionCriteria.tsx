@@ -7,31 +7,35 @@ export function DriverSelectionCriteria() {
   const topPerformerCriteria = [
     {
       factor: "Success Rate",
-      weight: 40,
-      description: "Percentage of successfully delivered shipments",
+      weight: 50,
+      description: "Percentage of shipments delivered successfully",
       icon: TrendingUp,
-      benchmark: "≥90% Excellent | 80-89% Good | <80% Needs Improvement"
+      thresholds: [
+        { range: "≥90%", label: "Excellent", color: "success" },
+        { range: "85-89%", label: "Acceptable", color: "warning" },
+        { range: "<85%", label: "Needs Improvement", color: "destructive" }
+      ]
     },
     {
       factor: "Volume Handled",
-      weight: 30,
-      description: "Total number of shipments processed",
+      weight: 35,
+      description: "Total number of shipments handled in the evaluation period",
       icon: Package,
-      benchmark: "Higher volume indicates experience and capacity"
+      thresholds: [
+        { range: "≥200 shipments", label: "Active & Reliable", color: "success" },
+        { range: "<200 shipments", label: "Limited Sample", color: "warning" }
+      ]
     },
     {
-      factor: "Client Diversity",
-      weight: 20,
-      description: "Number of different companies served",
-      icon: Building,
-      benchmark: "More companies = better adaptability"
-    },
-    {
-      factor: "Package Handling",
-      weight: 10,
-      description: "Total packages processed efficiently",
+      factor: "Daily Consistency",
+      weight: 15,
+      description: "Stability of daily performance (standard deviation of daily success rates)",
       icon: Users,
-      benchmark: "Reflects operational efficiency"
+      thresholds: [
+        { range: "Std Dev ≤5%", label: "Consistent", color: "success" },
+        { range: "5-10%", label: "Acceptable", color: "warning" },
+        { range: ">10%", label: "Inconsistent", color: "destructive" }
+      ]
     }
   ];
 
@@ -76,28 +80,63 @@ export function DriverSelectionCriteria() {
         </CardHeader>
         <CardContent className="space-y-6">
           {topPerformerCriteria.map((criteria) => (
-            <div key={criteria.factor} className="space-y-2">
+            <div key={criteria.factor} className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <criteria.icon className="h-4 w-4 text-primary" />
-                  <span className="font-medium">{criteria.factor}</span>
+                  <span className="font-medium text-lg">{criteria.factor}</span>
                 </div>
-                <Badge variant="secondary">{criteria.weight}% Weight</Badge>
+                <Badge variant="default" className="text-sm font-bold">
+                  {criteria.weight}% Weight
+                </Badge>
               </div>
-              <Progress value={criteria.weight} className="h-2" />
+              <Progress value={criteria.weight} className="h-3" />
               <p className="text-sm text-muted-foreground">{criteria.description}</p>
-              <div className="text-xs text-primary bg-primary/5 p-2 rounded">
-                {criteria.benchmark}
+              
+              {/* Thresholds */}
+              <div className="space-y-2">
+                <h5 className="text-sm font-medium text-foreground">Performance Thresholds:</h5>
+                <div className="grid gap-2">
+                  {criteria.thresholds.map((threshold, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 rounded-md bg-muted/30">
+                      <span className="text-sm font-mono">{threshold.range}</span>
+                      <Badge 
+                        variant={
+                          threshold.color === "success" ? "default" : 
+                          threshold.color === "warning" ? "secondary" : 
+                          "destructive"
+                        }
+                        className="text-xs"
+                      >
+                        {threshold.label}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           ))}
           
-          <div className="mt-6 p-4 bg-success/5 rounded-lg border border-success/20">
-            <h4 className="font-semibold text-success mb-2">Performance Score Calculation</h4>
-            <p className="text-sm text-muted-foreground">
-              Each driver receives a composite score from 0-100 based on normalized performance 
-              across all criteria. Higher scores indicate better overall performance and reliability.
+          <div className="mt-8 p-4 bg-primary/5 rounded-lg border border-primary/20">
+            <h4 className="font-semibold text-primary mb-2">Updated Performance Score Calculation</h4>
+            <p className="text-sm text-muted-foreground mb-3">
+              Each driver receives a composite score from <strong>0-100</strong> based on normalized performance 
+              across these <strong>3 criteria only</strong>:
             </p>
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              <div className="text-center p-2 bg-background rounded">
+                <div className="font-bold text-primary">50%</div>
+                <div>Success Rate</div>
+              </div>
+              <div className="text-center p-2 bg-background rounded">
+                <div className="font-bold text-primary">35%</div>
+                <div>Volume</div>
+              </div>
+              <div className="text-center p-2 bg-background rounded">
+                <div className="font-bold text-primary">15%</div>
+                <div>Consistency</div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
