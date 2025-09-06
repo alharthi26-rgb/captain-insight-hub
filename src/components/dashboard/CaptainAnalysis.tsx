@@ -1,8 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, TrendingUp, TrendingDown, Award, AlertTriangle } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Award, AlertTriangle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
 import { ShipmentData } from "@/types/dashboard";
 import { KPICard } from "./KPICard";
@@ -14,6 +14,10 @@ interface CaptainAnalysisProps {
 }
 
 export function CaptainAnalysis({ captain, data, onBack }: CaptainAnalysisProps) {
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: 'asc' | 'desc';
+  } | null>(null);
   const captainData = useMemo(() => {
     return data.filter(item => item.captain === captain);
   }, [data, captain]);
@@ -179,6 +183,7 @@ export function CaptainAnalysis({ captain, data, onBack }: CaptainAnalysisProps)
           shipments: 0,
           delivered: 0,
           failed: 0,
+          lastShipmentDate: new Date(item.date),
         });
       }
       
@@ -186,16 +191,75 @@ export function CaptainAnalysis({ captain, data, onBack }: CaptainAnalysisProps)
       pkg.shipments += item.shipments;
       pkg.delivered += item.deliveredShipments;
       pkg.failed += item.failedShipments;
+      
+      // Update last shipment date if this one is more recent
+      const currentDate = new Date(item.date);
+      if (currentDate > pkg.lastShipmentDate) {
+        pkg.lastShipmentDate = currentDate;
+      }
     });
     
-    return Array.from(packageMap.values())
+    let result = Array.from(packageMap.values())
       .map(pkg => ({
         ...pkg,
         successRate: pkg.shipments > 0 ? (pkg.delivered / pkg.shipments) * 100 : 0,
         failureRate: pkg.shipments > 0 ? (pkg.failed / pkg.shipments) * 100 : 0,
-      }))
-      .sort((a, b) => b.shipments - a.shipments);
-  }, [captainData]);
+        lastShipmentDateFormatted: pkg.lastShipmentDate.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          year: 'numeric' 
+        }),
+      }));
+
+    // Apply sorting if configured
+    if (sortConfig) {
+      result.sort((a, b) => {
+        let aValue = a[sortConfig.key as keyof typeof a];
+        let bValue = b[sortConfig.key as keyof typeof b];
+        
+        // Handle date sorting
+        if (sortConfig.key === 'lastShipmentDate') {
+          aValue = a.lastShipmentDate.getTime();
+          bValue = b.lastShipmentDate.getTime();
+        }
+        
+        if (typeof aValue === 'string') {
+          aValue = aValue.toLowerCase();
+          bValue = (bValue as string).toLowerCase();
+        }
+        
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    } else {
+      // Default sort by shipments descending
+      result.sort((a, b) => b.shipments - a.shipments);
+    }
+
+    return result;
+  }, [captainData, sortConfig]);
+
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (columnKey: string) => {
+    if (!sortConfig || sortConfig.key !== columnKey) {
+      return <ArrowUpDown className="h-4 w-4" />;
+    }
+    return sortConfig.direction === 'asc' ? 
+      <ArrowUp className="h-4 w-4" /> : 
+      <ArrowDown className="h-4 w-4" />;
+  };
 
   return (
     <div className="space-y-6">
@@ -419,12 +483,76 @@ export function CaptainAnalysis({ captain, data, onBack }: CaptainAnalysisProps)
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b border-muted">
-                    <th className="text-left p-3 font-medium">Package Code</th>
-                    <th className="text-right p-3 font-medium">Total Shipments</th>
-                    <th className="text-right p-3 font-medium">Delivered</th>
-                    <th className="text-right p-3 font-medium">Failed</th>
-                    <th className="text-right p-3 font-medium">Success Rate</th>
-                    <th className="text-right p-3 font-medium">Failure Rate</th>
+                    <th className="text-left p-3 font-medium">
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => handleSort('code')}
+                        className="h-auto p-0 font-medium hover:bg-transparent"
+                      >
+                        Package Code
+                        {getSortIcon('code')}
+                      </Button>
+                    </th>
+                    <th className="text-right p-3 font-medium">
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => handleSort('shipments')}
+                        className="h-auto p-0 font-medium hover:bg-transparent"
+                      >
+                        Total Shipments
+                        {getSortIcon('shipments')}
+                      </Button>
+                    </th>
+                    <th className="text-right p-3 font-medium">
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => handleSort('delivered')}
+                        className="h-auto p-0 font-medium hover:bg-transparent"
+                      >
+                        Delivered
+                        {getSortIcon('delivered')}
+                      </Button>
+                    </th>
+                    <th className="text-right p-3 font-medium">
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => handleSort('failed')}
+                        className="h-auto p-0 font-medium hover:bg-transparent"
+                      >
+                        Failed
+                        {getSortIcon('failed')}
+                      </Button>
+                    </th>
+                    <th className="text-right p-3 font-medium">
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => handleSort('successRate')}
+                        className="h-auto p-0 font-medium hover:bg-transparent"
+                      >
+                        Success Rate
+                        {getSortIcon('successRate')}
+                      </Button>
+                    </th>
+                    <th className="text-right p-3 font-medium">
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => handleSort('failureRate')}
+                        className="h-auto p-0 font-medium hover:bg-transparent"
+                      >
+                        Failure Rate
+                        {getSortIcon('failureRate')}
+                      </Button>
+                    </th>
+                    <th className="text-right p-3 font-medium">
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => handleSort('lastShipmentDate')}
+                        className="h-auto p-0 font-medium hover:bg-transparent"
+                      >
+                        Last Shipment
+                        {getSortIcon('lastShipmentDate')}
+                      </Button>
+                    </th>
                     <th className="text-center p-3 font-medium">Status</th>
                   </tr>
                 </thead>
@@ -448,6 +576,9 @@ export function CaptainAnalysis({ captain, data, onBack }: CaptainAnalysisProps)
                         <span className={`font-semibold ${pkg.failureRate <= 10 ? 'text-green-600' : pkg.failureRate <= 20 ? 'text-yellow-600' : 'text-red-600'}`}>
                           {pkg.failureRate.toFixed(1)}%
                         </span>
+                      </td>
+                      <td className="text-right p-3 font-medium text-muted-foreground">
+                        {pkg.lastShipmentDateFormatted}
                       </td>
                       <td className="text-center p-3">
                         <div className="flex justify-center gap-1">
