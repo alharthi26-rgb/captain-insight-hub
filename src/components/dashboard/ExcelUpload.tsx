@@ -18,6 +18,55 @@ export const ExcelUpload: React.FC<ExcelUploadProps> = ({ onDataLoaded, hasData,
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
+  const parseDate = (dateValue: any) => {
+    if (!dateValue) return new Date().toISOString().split('T')[0];
+    
+    // Handle Excel date serial numbers
+    if (typeof dateValue === 'number') {
+      const excelDate = new Date((dateValue - 25569) * 86400 * 1000);
+      return excelDate.toISOString().split('T')[0];
+    }
+    
+    // Handle string dates in various formats
+    const dateStr = String(dateValue).trim();
+    
+    // Try parsing common formats: M/D/YYYY, MM/DD/YYYY, YYYY-MM-DD, DD/MM/YYYY
+    const formats = [
+      /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, // M/D/YYYY or MM/DD/YYYY
+      /^(\d{4})-(\d{1,2})-(\d{1,2})$/, // YYYY-MM-DD
+      /^(\d{1,2})-(\d{1,2})-(\d{4})$/, // DD-MM-YYYY
+    ];
+    
+    for (const format of formats) {
+      const match = dateStr.match(format);
+      if (match) {
+        let year, month, day;
+        
+        if (format === formats[0]) { // M/D/YYYY
+          [, month, day, year] = match;
+        } else if (format === formats[1]) { // YYYY-MM-DD
+          [, year, month, day] = match;
+        } else { // DD-MM-YYYY
+          [, day, month, year] = match;
+        }
+        
+        const parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        if (!isNaN(parsedDate.getTime())) {
+          return parsedDate.toISOString().split('T')[0];
+        }
+      }
+    }
+    
+    // Fallback: try native Date parsing
+    const fallbackDate = new Date(dateStr);
+    if (!isNaN(fallbackDate.getTime())) {
+      return fallbackDate.toISOString().split('T')[0];
+    }
+    
+    // If all fails, return current date
+    return new Date().toISOString().split('T')[0];
+  };
+
   const processExcelFile = (file: File) => {
     setUploading(true);
     const reader = new FileReader();
@@ -35,7 +84,7 @@ export const ExcelUpload: React.FC<ExcelUploadProps> = ({ onDataLoaded, hasData,
           id: `excel-${index}`,
           companyName: row['Company Name'] || row.companyName || '',
           packageCode: row['Package Code'] || row.packageCode || '',
-          date: row['Date'] || row.date || new Date().toISOString().split('T')[0],
+          date: parseDate(row['Date'] || row.date),
           shipments: Number(row['# Shipments'] || row.shipments || 0),
           packageFare: Number(row['Package Fare'] || row.packageFare || 0),
           deliveredShipments: Number(row['# Delivered Shipments'] || row.delivered || 0),
@@ -114,7 +163,7 @@ export const ExcelUpload: React.FC<ExcelUploadProps> = ({ onDataLoaded, hasData,
       {
         'Company Name': 'Example Company',
         'Package Code': 'PKG001',
-        'Date': '2024-01-15',
+        'Date': '6/23/2025',
         '# Shipments': 10,
         'Package Fare': 50.00,
         '# Delivered Shipments': 8,
