@@ -8,113 +8,133 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 248 250 252;
-    --foreground: 215 28% 17%;
+    /* Dashboard Color Palette */
+    --background: 0 0% 96%; /* Light Gray #F5F5F5 */
+    --foreground: 0 0% 0%; /* Black #000000 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 215 28% 17%;
+    --card: 0 0% 100%; /* White #FFFFFF */
+    --card-foreground: 0 0% 0%; /* Black #000000 */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 28% 17%;
+    --popover: 0 0% 100%; /* White #FFFFFF */
+    --popover-foreground: 0 0% 0%; /* Black #000000 */
 
-    --primary: 213 94% 68%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 50 100% 50%; /* Primary Brand Yellow #FFD500 */
+    --primary-foreground: 0 0% 0%; /* Black #000000 */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 215 28% 17%;
+    --secondary: 207 89% 94%; /* Light Blue #E3F2FD */
+    --secondary-foreground: 0 0% 0%; /* Black #000000 */
 
-    --muted: 215 20% 95%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 0 0% 96%; /* Light Gray #F5F5F5 */
+    --muted-foreground: 208 7% 46%; /* Dark Gray #6C757D */
 
-    --accent: 213 94% 68%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 211 100% 50%; /* Blue #007BFF */
+    --accent-foreground: 0 0% 100%; /* White #FFFFFF */
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 354 70% 54%; /* Red #DC3545 */
+    --destructive-foreground: 0 0% 100%; /* White #FFFFFF */
 
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 100%;
+    --success: 134 61% 41%; /* Green #28A745 */
+    --success-foreground: 0 0% 100%; /* White #FFFFFF */
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
+    --warning: 45 100% 51%; /* Amber #FFC107 */
+    --warning-foreground: 0 0% 0%; /* Black #000000 */
 
-    --border: 215 20% 91%;
-    --input: 215 20% 91%;
-    --ring: 213 94% 68%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 50 100% 50%; /* Primary Brand Yellow */
 
-    --chart-1: 213 94% 68%;
-    --chart-2: 142 76% 36%;
-    --chart-3: 0 72% 51%;
-    --chart-4: 38 92% 50%;
-    --chart-5: 270 95% 75%;
+    /* Chart colors using the dashboard palette */
+    --chart-1: 50 100% 50%; /* Primary Yellow */
+    --chart-2: 134 61% 41%; /* Green */
+    --chart-3: 354 70% 54%; /* Red */
+    --chart-4: 211 100% 50%; /* Blue */
+    --chart-5: 45 100% 51%; /* Amber */
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Dashboard-specific enhancements */
+    --hover: 207 89% 96%; /* Lighter version of Light Blue for hover states */
+    --pending: 45 100% 51%; /* Amber for pending states */
+    --benchmark: 211 100% 50%; /* Blue for benchmark data */
+    
+    /* Gradients using the dashboard palette */
+    --gradient-primary: linear-gradient(135deg, hsl(50 100% 50%), hsl(45 100% 51%));
+    --gradient-success: linear-gradient(135deg, hsl(134 61% 41%), hsl(134 61% 35%));
+    --gradient-warning: linear-gradient(135deg, hsl(45 100% 51%), hsl(38 100% 55%));
+    --gradient-accent: linear-gradient(135deg, hsl(211 100% 50%), hsl(207 89% 60%));
 
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 0 0% 100%; /* White */
+    --sidebar-foreground: 0 0% 0%; /* Black */
+    --sidebar-primary: 50 100% 50%; /* Primary Yellow */
+    --sidebar-primary-foreground: 0 0% 0%; /* Black */
+    --sidebar-accent: 207 89% 94%; /* Light Blue */
+    --sidebar-accent-foreground: 0 0% 0%; /* Black */
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 50 100% 50%; /* Primary Yellow */
   }
 
   .dark {
-    --background: 215 28% 8%;
-    --foreground: 213 31% 91%;
+    /* Dark mode using inverted palette */
+    --background: 0 0% 0%; /* Black #000000 */
+    --foreground: 0 0% 100%; /* White #FFFFFF */
 
-    --card: 215 28% 10%;
-    --card-foreground: 213 31% 91%;
+    --card: 208 7% 15%; /* Dark variation */
+    --card-foreground: 0 0% 100%; /* White #FFFFFF */
 
-    --popover: 215 28% 10%;
-    --popover-foreground: 213 31% 91%;
+    --popover: 208 7% 15%; /* Dark variation */
+    --popover-foreground: 0 0% 100%; /* White #FFFFFF */
 
-    --primary: 213 94% 68%;
-    --primary-foreground: 215 28% 8%;
+    --primary: 50 100% 50%; /* Primary Brand Yellow #FFD500 */
+    --primary-foreground: 0 0% 0%; /* Black #000000 */
 
-    --secondary: 215 25% 15%;
-    --secondary-foreground: 213 31% 91%;
+    --secondary: 208 7% 20%; /* Dark variation */
+    --secondary-foreground: 0 0% 100%; /* White #FFFFFF */
 
-    --muted: 215 25% 15%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 208 7% 15%; /* Dark variation */
+    --muted-foreground: 208 7% 65%; /* Lighter gray for dark mode */
 
-    --accent: 213 94% 68%;
-    --accent-foreground: 215 28% 8%;
+    --accent: 211 100% 50%; /* Blue #007BFF */
+    --accent-foreground: 0 0% 100%; /* White #FFFFFF */
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 354 70% 54%; /* Red #DC3545 */
+    --destructive-foreground: 0 0% 100%; /* White #FFFFFF */
 
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 100%;
+    --success: 134 61% 41%; /* Green #28A745 */
+    --success-foreground: 0 0% 100%; /* White #FFFFFF */
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
+    --warning: 45 100% 51%; /* Amber #FFC107 */
+    --warning-foreground: 0 0% 0%; /* Black #000000 */
 
-    --border: 215 25% 20%;
-    --input: 215 25% 20%;
-    --ring: 213 94% 68%;
+    --border: 208 7% 25%;
+    --input: 208 7% 25%;
+    --ring: 50 100% 50%; /* Primary Brand Yellow */
 
-    --chart-1: 213 94% 68%;
-    --chart-2: 142 76% 36%;
-    --chart-3: 0 72% 51%;
-    --chart-4: 38 92% 50%;
-    --chart-5: 270 95% 75%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Chart colors remain consistent */
+    --chart-1: 50 100% 50%; /* Primary Yellow */
+    --chart-2: 134 61% 41%; /* Green */
+    --chart-3: 354 70% 54%; /* Red */
+    --chart-4: 211 100% 50%; /* Blue */
+    --chart-5: 45 100% 51%; /* Amber */
+    
+    /* Dashboard-specific enhancements for dark mode */
+    --hover: 207 89% 15%; /* Darker version for dark mode hover states */
+    --pending: 45 100% 51%; /* Amber for pending states */
+    --benchmark: 211 100% 50%; /* Blue for benchmark data */
+    
+    /* Gradients using the dashboard palette for dark mode */
+    --gradient-primary: linear-gradient(135deg, hsl(50 100% 50%), hsl(45 100% 51%));
+    --gradient-success: linear-gradient(135deg, hsl(134 61% 41%), hsl(134 61% 35%));
+    --gradient-warning: linear-gradient(135deg, hsl(45 100% 51%), hsl(38 100% 55%));
+    --gradient-accent: linear-gradient(135deg, hsl(211 100% 50%), hsl(207 89% 60%));
+    
+    --sidebar-background: 0 0% 5%; /* Very dark */
+    --sidebar-foreground: 0 0% 100%; /* White */
+    --sidebar-primary: 50 100% 50%; /* Primary Yellow */
+    --sidebar-primary-foreground: 0 0% 0%; /* Black */
+    --sidebar-accent: 208 7% 20%; /* Dark variation */
+    --sidebar-accent-foreground: 0 0% 100%; /* White */
+    --sidebar-border: 208 7% 25%;
+    --sidebar-ring: 50 100% 50%; /* Primary Yellow */
   }
 }
 
